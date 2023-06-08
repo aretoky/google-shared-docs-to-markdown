@@ -41,7 +41,7 @@ async function exportFile({ drive, fileId }) {
 
 async function exportFiles({ drive, files }) {
   return Promise.all(
-    files.map(async (file) => {
+    files.filter((file) => { return parseInt(file.size) < 1 * 1024 * 1024; }).map(async (file) => {
       const html = await exportFile({
         drive,
         fileId: file.id,
@@ -56,9 +56,9 @@ async function exportFiles({ drive, files }) {
 
 async function listFiles({ drive, googleDriveFolderId }) {
   const response = await drive.files.list({
-    fields: "nextPageToken, files(id, name, createdTime, modifiedTime)",
+    fields: "nextPageToken, files(id, name, createdTime, modifiedTime, size)",
     orderBy: "modifiedTime desc",
-    pageSize: 1000,
+    pageSize: 100,
     q: `'${googleDriveFolderId}' in parents and mimeType = 'application/vnd.google-apps.document'`,
     corpora: "allDrives",
     includeItemsFromAllDrives: true,
@@ -114,7 +114,9 @@ function convertHtml(html) {
 async function writeExportedFiles({ exportedFiles, outputDirectoryPath }) {
   exportedFiles.forEach(async (exportedFile) => {
     const { body, title } = convertHtml(exportedFile.html);
-    const fileURL = exportedFile.fileId
+    const fileURL = exportedFile.id
+    console.log(title);
+    console.log(fileURL);
     await fsPromises.writeFile(
       `${outputDirectoryPath}/${exportedFile.name}.md`,
       matter.stringify(body, { title, fileURL })
@@ -123,6 +125,8 @@ async function writeExportedFiles({ exportedFiles, outputDirectoryPath }) {
 }
 
 main({
+  // googleDriveFolderId: "0ACGd_YvjbzEZUk9PVA",
   googleDriveFolderId: core.getInput("google_drive_folder_id"),
   outputDirectoryPath: core.getInput("output_directory_path"),
+  // outputDirectoryPath: "out"
 }).catch(core.setFailed);

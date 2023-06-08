@@ -15,7 +15,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: google-github-actions/auth@v0
+      - uses: google-github-actions/auth@v1
         with:
           service_account: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
           workload_identity_provider: ${{ secrets.GOOGLE_WORKLOAD_IDENTITY_PROVIDER }}
